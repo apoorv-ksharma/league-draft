@@ -27,9 +27,9 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} w-full h-[100vh] bg-gray-500 flex flex-col p-4`}
+        className={`${geistSans.variable} ${geistMono.variable} w-full h-[100vh] bg-gray-500 flex flex-col`}
       >
-        <div className='flex gap-4 flex-col h-[100%]'>
+        <div className='flex gap-4 flex-col h-[100%] p-4'>
           <div className='flex gap-4'>
             <Link href='/players' className='p-2 bg-sky-500 rounded-md text-white'>
               Players

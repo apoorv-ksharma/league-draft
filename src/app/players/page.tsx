@@ -21,7 +21,6 @@ export default function Players() {
   );
 
   useEffect(() => {
-    console.log(playerList, emptyChampion, selectedChamp);
     if (emptyPlayer && !emptyPlayer.selected) {
       editPlayer({ action: 'update', data: { selected: true }, playerName: emptyPlayer.name });
     }

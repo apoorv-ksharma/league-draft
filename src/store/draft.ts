@@ -12,11 +12,15 @@ export type DraftPlayerConfig = {
   selected: boolean
 }
 
-const InitailDraftPlayerList: DraftPlayerConfig[] = roles.map((role) => ({
+export const InitialDraftPlayer = {
   name: '',
-  role,
   selected: false,
   selectedChamp: undefined
+}
+
+const InitailDraftPlayerList: DraftPlayerConfig[] = roles.map((role) => ({
+  ...InitialDraftPlayer,
+  role,
 }))
 
 type Draft = {
@@ -27,7 +31,8 @@ type Draft = {
 
 type DraftStoreState = {
   drafts: Draft[],
-  editDraft: ({ action, draftName, data }: { action: 'add' | 'update' | 'delete', draftName?: string, data?: Partial<Draft> }) => void
+  editDraft: ({ action, draftName, data }: { action: 'add' | 'update' | 'delete', draftName?: string, data?: Partial<Draft> }) => void,
+  editPlayer: ({ action, draftName, playerName, data }: { action: 'add' | 'update' | 'delete', draftName: string, playerName?: string, data?: Partial<DraftPlayerConfig> }) => void
 }
 
 export const useDraftStore = create(persist<DraftStoreState>((set, get) => {
@@ -75,6 +80,47 @@ export const useDraftStore = create(persist<DraftStoreState>((set, get) => {
 
           break;
         }
+
+        default:
+          break;
+      }
+    },
+    editPlayer: ({ action, draftName, data }) => {
+      switch (action) {
+        case "update": {
+          console.log(action, draftName, data)
+          if (!data) return
+          const state = get()
+          const selectedDraft = state.drafts.find((draft) => draft.name === draftName)
+
+          if (selectedDraft === undefined || !data.role) return
+
+          const selectedPlayer = selectedDraft.playerList.find((player) => player.role === data.role)
+          console.log(selectedPlayer)
+
+          const newState = {
+            ...state, drafts: state.drafts.map((draft) => {
+              if (draft.name === selectedDraft.name) {
+                return {
+                  ...draft, playerList: draft.playerList.map((player) => {
+                    if (player.role === selectedPlayer?.role) {
+                      console.log(player, selectedPlayer)
+                      return { ...player, ...data }
+                    }
+                    return player
+                  })
+                }
+              }
+              return draft
+            })
+          }
+
+          set(newState)
+
+          break;
+
+        }
+
 
         default:
           break;
