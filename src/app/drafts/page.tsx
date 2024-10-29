@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { InitialDraftPlayer, useDraftStore } from '@/store/draft';
-import { usePlayerStore } from '@/store/player';
+import { Role, usePlayerStore } from '@/store/player';
 import { useEffect, useMemo } from 'react';
 
 export default function Drafts() {
@@ -29,7 +29,7 @@ export default function Drafts() {
   }, [selectedDraft]);
 
   return (
-    <div className='rounded-md w-full h-full bg-red-500 p-4 flex flex-col gap-2'>
+    <div className='rounded-md w-full h-full bg-pink-800 p-4 flex flex-col gap-2'>
       <div className='flex flex-row items-center gap-4'>
         <AddIcon
           onClickHandler={() => {
@@ -42,7 +42,7 @@ export default function Drafts() {
           <div key={index} className=''>
             <div
               className={`p-2 ${
-                selectedDraft?.name === draft.name ? 'bg-sky-500' : 'bg-neutral-500'
+                selectedDraft?.name === draft.name ? 'bg-slate-500' : 'bg-neutral-500'
               } rounded-md h-full text-white`}
               onClick={() => {
                 if (emptyDraft !== undefined) return;
@@ -107,7 +107,15 @@ export default function Drafts() {
                         <SelectGroup>
                           <SelectLabel>Players</SelectLabel>
                           {playerList
-                            .filter((player) => !selectedPlayers?.includes(player.name))
+                            .filter(
+                              (player) =>
+                                !selectedPlayers?.includes(player.name) &&
+                                player.championList.reduce((roles: Role[], champ) => {
+                                  if (champ.role) roles.push(champ.role);
+
+                                  return roles;
+                                }, [])
+                            )
                             .map((playerFromList, index) => (
                               <SelectItem key={index} value={playerFromList.name}>
                                 {playerFromList.name}
@@ -118,7 +126,7 @@ export default function Drafts() {
                     </Select>
                   )}
                 </div>
-                <div className='w-full bg-green-500 gap-4 flex flex-row justify-center items-center'>
+                <div className='w-full gap-4 flex flex-row justify-center items-center'>
                   {player.selectedChamp ? (
                     <div
                       key={index}
