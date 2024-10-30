@@ -1,6 +1,7 @@
 'use client';
 
 import { AddIcon } from '@/components/ui/addIcon';
+import { DeleteIcon } from '@/components/ui/deleteIcon';
 import { Player, resourceScores, roles, usePlayerStore } from '@/store/player';
 import { useEffect, useMemo } from 'react';
 
@@ -22,14 +23,14 @@ export default function Players() {
 
   useEffect(() => {
     if (emptyPlayer && !emptyPlayer.selected) {
-      editPlayer({ action: 'update', data: { selected: true }, playerName: emptyPlayer.name });
+      editPlayer({ action: 'update', data: { selected: true }, playerId: emptyPlayer.id });
     }
     if (selectedPlayer && emptyChampion && !emptyChampion.selected) {
       editChampion({
         action: 'update',
         data: { selected: true },
-        playerName: selectedPlayer?.name,
-        selectedChampName: emptyChampion.name,
+        playerId: selectedPlayer?.id,
+        selectedChampId: emptyChampion.id,
       });
     }
   }, [
@@ -61,7 +62,7 @@ export default function Players() {
             onClick={() => {
               if (emptyPlayer !== undefined) return;
 
-              editPlayer({ action: 'update', data: { selected: true }, playerName: player.name });
+              editPlayer({ action: 'update', data: { selected: true }, playerId: player.id });
             }}
           >
             {player.name ? player.name : 'New Player'}
@@ -70,28 +71,39 @@ export default function Players() {
       </div>
       {selectedPlayer && (
         <div className='flex flex-col gap-2'>
-          <input
-            value={selectedPlayer?.name}
-            placeholder='Player Name'
-            className='w-[150px] rounded-md p-2'
-            onChange={(e) => {
-              editPlayer({
-                action: 'update',
-                data: { name: e.target.value ?? '' },
-                playerName: selectedPlayer.name,
-              });
-            }}
-          />
+          <div className='flex flex-row gap-4'>
+            <input
+              value={selectedPlayer?.name}
+              placeholder='Player Name'
+              className='w-[150px] rounded-md p-2'
+              onChange={(e) => {
+                editPlayer({
+                  action: 'update',
+                  data: { name: e.target.value ?? '' },
+                  playerId: selectedPlayer.id,
+                });
+              }}
+            />
+            <DeleteIcon
+              onClickHandler={() => {
+                editPlayer({
+                  action: 'delete',
+                  playerId: selectedPlayer.id,
+                });
+              }}
+            />
+          </div>
           <div className='flex flex-row gap-4'>
             <AddIcon
               onClickHandler={() => {
                 const emptyChampion = selectedPlayer.championList.find(
                   (champ) => champ.name === ''
                 );
+                console.log(emptyChampion);
                 if (emptyChampion !== undefined) {
                   return;
                 }
-                editChampion({ action: 'add', playerName: selectedPlayer?.name });
+                editChampion({ action: 'add', playerId: selectedPlayer?.id });
               }}
             />
             {selectedPlayer?.championList.map((champion, index) => {
@@ -99,16 +111,15 @@ export default function Players() {
                 <div
                   key={index}
                   className={`p-2 ${
-                    selectedChamp?.name === champion.name ? 'bg-indigo-500' : 'bg-slate-500'
+                    selectedChamp?.id === champion.id ? 'bg-indigo-500' : 'bg-slate-500'
                   } rounded-md h-full text-white`}
                   onClick={() => {
                     if (emptyChampion !== undefined) return;
-                    console.log(champion);
                     editChampion({
                       action: 'update',
-                      playerName: selectedPlayer.name,
+                      playerId: selectedPlayer.id,
                       data: { selected: true },
-                      selectedChampName: champion.name,
+                      selectedChampId: champion.id,
                     });
                   }}
                 >
@@ -119,19 +130,30 @@ export default function Players() {
           </div>
           {selectedChamp && (
             <div className='flex flex-col gap-4'>
-              <input
-                value={selectedChamp.name}
-                placeholder='Champ Name'
-                className='w-[150px] rounded-md p-2'
-                onChange={(e) => {
-                  editChampion({
-                    action: 'update',
-                    playerName: selectedPlayer.name,
-                    selectedChampName: selectedChamp.name,
-                    data: { name: e.target.value ?? '' },
-                  });
-                }}
-              />
+              <div className='flex flex-row gap-4'>
+                <input
+                  value={selectedChamp.name}
+                  placeholder='Champ Name'
+                  className='w-[150px] rounded-md p-2'
+                  onChange={(e) => {
+                    editChampion({
+                      action: 'update',
+                      playerId: selectedPlayer.id,
+                      selectedChampId: selectedChamp.id,
+                      data: { name: e.target.value ?? '' },
+                    });
+                  }}
+                />
+                <DeleteIcon
+                  onClickHandler={() => {
+                    editChampion({
+                      action: 'delete',
+                      playerId: selectedPlayer.id,
+                      selectedChampId: selectedChamp.id,
+                    });
+                  }}
+                />
+              </div>
               <div className='flex flex-row gap-2'>
                 {roles.map((role, index) => (
                   <p
@@ -142,8 +164,8 @@ export default function Players() {
                     onClick={() => {
                       editChampion({
                         action: 'update',
-                        playerName: selectedPlayer.name,
-                        selectedChampName: selectedChamp.name,
+                        playerId: selectedPlayer.id,
+                        selectedChampId: selectedChamp.id,
                         data: { role },
                       });
                     }}
@@ -164,8 +186,8 @@ export default function Players() {
                     onClick={() => {
                       editChampion({
                         action: 'update',
-                        playerName: selectedPlayer.name,
-                        selectedChampName: selectedChamp.name,
+                        playerId: selectedPlayer.id,
+                        selectedChampId: selectedChamp.id,
                         data: { resourceScore },
                       });
                     }}

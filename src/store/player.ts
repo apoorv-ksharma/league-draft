@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware";
+import { v4 as uuid } from 'uuid';
 
 export type Role = 'top' | 'jungle' | 'mid' | 'bot' | 'sup'
 
@@ -12,6 +13,7 @@ export const roles: Role[] = [
 ]
 
 export type Champion = {
+  id: string,
   name: string,
   role: Role | null,
   resourceScore: ResourceScore,
@@ -19,26 +21,28 @@ export type Champion = {
 }
 
 export type Player = {
-  name: string;
+  id: string,
+  name: string,
   championList: Champion[],
   selected: boolean
 }
 
 export type PlayerStoreState = {
   playerList: Player[],
-  editPlayer: ({ action, playerName, data }: { action: 'add' | 'delete' | 'update', playerName?: string | undefined, data?: Partial<Player> }) => Player[],
-  editChampion: ({ action, playerName, selectedChampName, data }: { action: 'add' | 'delete' | 'update', playerName: string | undefined, selectedChampName?: string | undefined, data?: Partial<Champion> }) => void
+  editPlayer: ({ action, playerId, data }: { action: 'add' | 'delete' | 'update', playerId?: string | undefined, data?: Partial<Player> }) => Player[],
+  editChampion: ({ action, playerId, selectedChampId, data }: { action: 'add' | 'delete' | 'update', playerId: string | undefined, selectedChampId?: string | undefined, data?: Partial<Champion> }) => void
 }
 
 export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
   return ({
     playerList: [],
-    editPlayer: ({ action, playerName, data }) => {
+    editPlayer: ({ action, playerId, data }) => {
 
       switch (action) {
         case 'add': {
-          const newPlayer: Player = { name: '', championList: [], selected: true };
-          const state = get()
+          const state = get();
+
+          const newPlayer: Player = { id: uuid(), name: '', championList: [], selected: true };
 
           const newState = { ...state, playerList: [...state.playerList.map((player) => ({ ...player, selected: false })), newPlayer] }
 
@@ -50,17 +54,37 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
         case 'update': {
           const state = get()
 
-          const selectedPlayer = state.playerList.find((player) => player.name === playerName)
+          const selectedPlayer = state.playerList.find((player) => player.id === playerId)
 
           if (selectedPlayer === undefined) return get().playerList
 
           const newState = {
-            ...state, playerList: state.playerList.map((player) => {
-              if (player.name === selectedPlayer.name) {
+            ...state,
+            playerList: state.playerList.map((player) => {
+              if (player.id === selectedPlayer.id) {
                 return { ...player, ...data, selected: true }
               }
               return { ...player, selected: false }
             })
+          }
+
+          set(newState)
+
+          return get().playerList
+        }
+
+        case 'delete': {
+          const state = get()
+
+          const selectedPlayer = state.playerList.find((player) => player.id === playerId)
+
+          console.log(selectedPlayer)
+
+          if (selectedPlayer === undefined) return get().playerList
+
+          const newState = {
+            ...state,
+            playerList: state.playerList.filter((player) => player.id !== selectedPlayer.id)
           }
 
           set(newState)
@@ -73,19 +97,24 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
       }
 
     },
-    editChampion: ({ action, playerName, data, selectedChampName }) => {
-      if (playerName === undefined) return
+    editChampion: ({ action, playerId, data, selectedChampId }) => {
+      if (playerId === undefined) return
       switch (action) {
         case "add": {
-          const newChampion: Champion = { name: '', resourceScore: resourceScores[0], role: null, selected: true }
-          set((state) => ({
+          const state = get();
+
+          const newChampion: Champion = { id: uuid(), name: '', resourceScore: resourceScores[0], role: null, selected: true }
+
+          const newState = {
             ...state, playerList: state.playerList.map((player) => {
-              if (player.name === playerName) {
+              if (player.id === playerId) {
                 return { ...player, championList: [...player.championList.map((champ) => ({ ...champ, selected: false })), newChampion] }
               }
               return { ...player }
             })
-          }))
+          }
+
+          set(newState)
 
           break;
         }
@@ -93,16 +122,20 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
         case 'update': {
           const state = get()
 
-          const selectedPlayer = state.playerList.find((player) => player.name === playerName)
+          const selectedPlayer = state.playerList.find((player) => player.id === playerId)
+
           if (selectedPlayer === undefined) return
 
-          const selectedChamp = selectedPlayer.championList.find((champ) => champ.name === selectedChampName)
-          set((state) => ({
-            ...state, playerList: state.playerList.map((player) => {
-              if (player.name === playerName) {
+          const selectedChamp = selectedPlayer.championList.find((champ) => champ.id === selectedChampId)
+
+          const newState = {
+            ...state,
+            playerList: state.playerList.map((player) => {
+              if (player.id === playerId) {
                 return {
-                  ...player, championList: player.championList.map((champ) => {
-                    if (champ.name === selectedChamp?.name) {
+                  ...player,
+                  championList: player.championList.map((champ) => {
+                    if (champ.id === selectedChamp?.id) {
                       return { ...champ, ...data, selected: true }
                     }
                     return { ...champ, selected: false }
@@ -111,10 +144,38 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
               }
               return player
             })
-          }))
+          }
+
+          set(newState)
 
           break;
-          return
+        }
+
+        case 'delete': {
+          const state = get()
+
+          const selectedPlayer = state.playerList.find((player) => player.id === playerId)
+
+          if (selectedPlayer === undefined) return
+
+          const selectedChamp = selectedPlayer.championList.find((champ) => champ.id === selectedChampId)
+
+          const newState = {
+            ...state,
+            playerList: state.playerList.map((player) => {
+              if (player.id === playerId) {
+                return {
+                  ...player,
+                  championList: player.championList.filter((champ) => champ.id !== selectedChamp?.id)
+                }
+              }
+              return player
+            })
+          }
+
+          set(newState)
+
+          break;
         }
 
 

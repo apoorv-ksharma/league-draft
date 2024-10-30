@@ -1,6 +1,7 @@
 'use client';
 
 import { AddIcon } from '@/components/ui/addIcon';
+import { DeleteIcon } from '@/components/ui/deleteIcon';
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { InitialDraftPlayer, useDraftStore } from '@/store/draft';
 import { Role, usePlayerStore } from '@/store/player';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 export default function Drafts() {
   const { drafts, editDraft, editPlayer } = useDraftStore();
@@ -23,10 +24,6 @@ export default function Drafts() {
   const selectedPlayers = selectedDraft?.playerList.map((player) => player.name);
 
   const emptyDraft = useMemo(() => drafts.find((draft) => !draft.name), [drafts]);
-
-  useEffect(() => {
-    console.log(selectedDraft);
-  }, [selectedDraft]);
 
   return (
     <div className='rounded-md w-full h-full bg-pink-800 p-4 flex flex-col gap-2'>
@@ -47,7 +44,7 @@ export default function Drafts() {
               onClick={() => {
                 if (emptyDraft !== undefined) return;
 
-                editDraft({ action: 'update', data: { selected: true }, draftName: draft.name });
+                editDraft({ action: 'update', data: { selected: true }, draftId: draft.id });
               }}
             >
               {draft.name ? draft.name : 'New Draft'} -{' '}
@@ -60,18 +57,28 @@ export default function Drafts() {
       </div>
       {selectedDraft && (
         <div className='flex flex-col gap-2'>
-          <input
-            value={selectedDraft?.name}
-            placeholder='Draft Name'
-            className='w-[150px] rounded-md p-2'
-            onChange={(e) => {
-              editDraft({
-                action: 'update',
-                data: { name: e.target.value ?? '' },
-                draftName: selectedDraft.name,
-              });
-            }}
-          />
+          <div className='flex flex-row gap-4'>
+            <input
+              value={selectedDraft?.name}
+              placeholder='Draft Name'
+              className='w-[150px] rounded-md p-2'
+              onChange={(e) => {
+                editDraft({
+                  action: 'update',
+                  data: { name: e.target.value ?? '' },
+                  draftId: selectedDraft.id,
+                });
+              }}
+            />
+            <DeleteIcon
+              onClickHandler={() => {
+                editDraft({
+                  action: 'delete',
+                  draftId: selectedDraft.id,
+                });
+              }}
+            />
+          </div>
           <div className='flex flex-col gap-4 justify-between'>
             {selectedDraft.playerList.map((player, index) => (
               <div key={index} className='flex flex-row gap-4 p-4 bg-sky-500'>
@@ -82,7 +89,7 @@ export default function Drafts() {
                       onClick={() => {
                         editPlayer({
                           action: 'update',
-                          draftName: selectedDraft.name,
+                          draftId: selectedDraft.id,
                           data: { role: player.role, ...InitialDraftPlayer },
                         });
                       }}
@@ -95,7 +102,7 @@ export default function Drafts() {
                       onValueChange={(name) => {
                         editPlayer({
                           action: 'update',
-                          draftName: selectedDraft.name,
+                          draftId: selectedDraft.id,
                           data: { role: player.role, name },
                         });
                       }}
@@ -107,15 +114,23 @@ export default function Drafts() {
                         <SelectGroup>
                           <SelectLabel>Players</SelectLabel>
                           {playerList
-                            .filter(
-                              (player) =>
-                                !selectedPlayers?.includes(player.name) &&
-                                player.championList.reduce((roles: Role[], champ) => {
-                                  if (champ.role) roles.push(champ.role);
+                            .filter((playerL) => {
+                              const playerRoles = playerL.championList.reduce(
+                                (roles: Role[], champ) => {
+                                  if (champ.role && !roles.includes(champ.role))
+                                    roles.push(champ.role);
 
                                   return roles;
-                                }, [])
-                            )
+                                },
+                                []
+                              );
+
+                              const isPlayerIncluded = !selectedPlayers?.includes(playerL.name);
+
+                              const doesPlayerHaveRole = playerRoles.includes(player.role);
+
+                              return isPlayerIncluded && doesPlayerHaveRole;
+                            })
                             .map((playerFromList, index) => (
                               <SelectItem key={index} value={playerFromList.name}>
                                 {playerFromList.name}
@@ -134,7 +149,7 @@ export default function Drafts() {
                       onClick={() => {
                         editPlayer({
                           action: 'update',
-                          draftName: selectedDraft.name,
+                          draftId: selectedDraft.id,
                           data: { selectedChamp: undefined, role: player.role },
                         });
                       }}
@@ -152,7 +167,7 @@ export default function Drafts() {
                           onClick={() => {
                             editPlayer({
                               action: 'update',
-                              draftName: selectedDraft.name,
+                              draftId: selectedDraft.id,
                               data: { selectedChamp: champion, role: player.role },
                             });
                           }}
