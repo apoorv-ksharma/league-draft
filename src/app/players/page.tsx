@@ -3,7 +3,9 @@
 import { AddIcon } from '@/components/ui/addIcon';
 import { DeleteIcon } from '@/components/ui/deleteIcon';
 import { Player, resourceScores, roles, usePlayerStore } from '@/store/player';
+import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
+import Aatrox from '../../tiles/Aatrox_0.jpg';
 
 export default function Players() {
   const { playerList, editChampion, editPlayer } = usePlayerStore();
@@ -108,11 +110,13 @@ export default function Players() {
             />
             {selectedPlayer?.championList.map((champion, index) => {
               return (
-                <div
+                <Image
                   key={index}
-                  className={`p-2 ${
-                    selectedChamp?.id === champion.id ? 'bg-indigo-500' : 'bg-slate-500'
-                  } rounded-md h-full text-white`}
+                  className='rounded-full'
+                  alt='Champ'
+                  src={Aatrox}
+                  width={50}
+                  height={50}
                   onClick={() => {
                     if (emptyChampion !== undefined) return;
                     editChampion({
@@ -122,9 +126,7 @@ export default function Players() {
                       selectedChampId: champion.id,
                     });
                   }}
-                >
-                  {champion.name ? champion.name : 'New Champion'}
-                </div>
+                />
               );
             })}
           </div>
