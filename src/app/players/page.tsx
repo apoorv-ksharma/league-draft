@@ -5,7 +5,6 @@ import { DeleteIcon } from '@/components/ui/deleteIcon';
 import { Player, resourceScores, roles, usePlayerStore } from '@/store/player';
 import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
-import Aatrox from '../../tiles/Aatrox_0.jpg';
 
 export default function Players() {
   const { playerList, editChampion, editPlayer } = usePlayerStore();
@@ -95,7 +94,7 @@ export default function Players() {
               }}
             />
           </div>
-          <div className='flex flex-row gap-4'>
+          <div className='flex flex-row gap-4 items-center'>
             <AddIcon
               onClickHandler={() => {
                 const emptyChampion = selectedPlayer.championList.find(
@@ -110,23 +109,25 @@ export default function Players() {
             />
             {selectedPlayer?.championList.map((champion, index) => {
               return (
-                <Image
-                  key={index}
-                  className='rounded-full'
-                  alt='Champ'
-                  src={Aatrox}
-                  width={50}
-                  height={50}
-                  onClick={() => {
-                    if (emptyChampion !== undefined) return;
-                    editChampion({
-                      action: 'update',
-                      playerId: selectedPlayer.id,
-                      data: { selected: true },
-                      selectedChampId: champion.id,
-                    });
-                  }}
-                />
+                <div key={index} className='flex flex-col justify-center items-center'>
+                  <Image
+                    className='rounded-full border-white border-solid border-2'
+                    alt='Champ'
+                    src={`/images/Aatrox_3.jpg`}
+                    width={50}
+                    height={50}
+                    onClick={() => {
+                      if (emptyChampion !== undefined) return;
+                      editChampion({
+                        action: 'update',
+                        playerId: selectedPlayer.id,
+                        data: { selected: true },
+                        selectedChampId: champion.id,
+                      });
+                    }}
+                  />
+                  <p>{'Aatrox'}</p>
+                </div>
               );
             })}
           </div>
