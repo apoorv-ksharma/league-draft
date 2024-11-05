@@ -12,14 +12,16 @@ export type DraftPlayerConfig = {
 }
 
 export const InitialDraftPlayer = {
-  id: uuid(),
   name: '',
   selected: false,
   selectedChamp: undefined
 }
 
 const InitailDraftPlayerList: DraftPlayerConfig[] = roles.map((role) => ({
-  ...InitialDraftPlayer,
+  id: uuid(),
+  name: '',
+  selected: false,
+  selectedChamp: undefined,
   role,
 }))
 
@@ -107,7 +109,6 @@ export const useDraftStore = create(persist<DraftStoreState>((set, get) => {
     editPlayer: ({ action, draftId, data }) => {
       switch (action) {
         case "update": {
-          console.log(action, draftId, data)
           if (!data) return
           const state = get()
 
@@ -116,7 +117,6 @@ export const useDraftStore = create(persist<DraftStoreState>((set, get) => {
           if (selectedDraft === undefined || !data.role) return
 
           const selectedPlayer = selectedDraft.playerList.find((player) => player.role === data.role)
-
           const newState = {
             ...state, drafts: state.drafts.map((draft) => {
               if (draft.id === selectedDraft.id) {

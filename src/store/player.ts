@@ -4,7 +4,21 @@ import { v4 as uuid } from 'uuid';
 
 export type Role = 'top' | 'jungle' | 'mid' | 'bot' | 'sup'
 
-export type ResourceScore = 1 | 2 | 3 | 4 | 5
+export type ResourceScore = 0 | 1 | 2 | 3 | 4 | 5
+
+export const getResourceColour = ({ resourceScore }: { resourceScore: ResourceScore }) => {
+  switch (resourceScore) {
+    case 0: return 'black'
+    case 1: return 'green-700'
+    case 2: return 'green-300'
+    case 3: return 'yellow-500'
+    case 4: return 'red-300'
+    case 5: return 'red-700'
+
+    default:
+      break;
+  }
+}
 
 export const resourceScores: ResourceScore[] = [1, 2, 3, 4, 5]
 
@@ -15,8 +29,8 @@ export const roles: Role[] = [
 export type Champion = {
   id: string,
   name: string,
-  role: Role | null,
-  resourceScore: ResourceScore,
+  img: string,
+  data: { [R in Role]: ResourceScore },
   selected: boolean
 }
 
@@ -30,19 +44,18 @@ export type Player = {
 export type PlayerStoreState = {
   playerList: Player[],
   editPlayer: ({ action, playerId, data }: { action: 'add' | 'delete' | 'update', playerId?: string | undefined, data?: Partial<Player> }) => Player[],
-  editChampion: ({ action, playerId, selectedChampId, data }: { action: 'add' | 'delete' | 'update', playerId: string | undefined, selectedChampId?: string | undefined, data?: Partial<Champion> }) => void
+  editChampion: ({ action, playerId, selectedChampId, data, champData }: { action: 'add' | 'delete' | 'update', playerId: string | undefined, selectedChampId?: string | undefined, data?: { role?: Role, resourceScore?: ResourceScore, selected?: boolean }, champData?: Champion }) => void
 }
 
 export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
   return ({
     playerList: [],
     editPlayer: ({ action, playerId, data }) => {
-
       switch (action) {
         case 'add': {
           const state = get();
 
-          const newPlayer: Player = { id: uuid(), name: '', championList: [], selected: true };
+          const newPlayer: Player = { id: playerId ?? uuid(), name: '', championList: [], selected: true };
 
           const newState = { ...state, playerList: [...state.playerList.map((player) => ({ ...player, selected: false })), newPlayer] }
 
@@ -78,8 +91,6 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
 
           const selectedPlayer = state.playerList.find((player) => player.id === playerId)
 
-          console.log(selectedPlayer)
-
           if (selectedPlayer === undefined) return get().playerList
 
           const newState = {
@@ -97,13 +108,14 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
       }
 
     },
-    editChampion: ({ action, playerId, data, selectedChampId }) => {
+    editChampion: ({ action, playerId, data, selectedChampId, champData }) => {
       if (playerId === undefined) return
       switch (action) {
         case "add": {
           const state = get();
-
-          const newChampion: Champion = { id: uuid(), name: '', resourceScore: resourceScores[0], role: null, selected: true }
+          let newChampion: Champion
+          if (champData) { newChampion = champData }
+          else newChampion = { id: uuid(), name: '', img: '', data: roles.reduce((object, role) => { object[role] = 0; return object }, Object.create({})), selected: true }
 
           const newState = {
             ...state, playerList: state.playerList.map((player) => {
@@ -136,7 +148,9 @@ export const usePlayerStore = create(persist<PlayerStoreState>((set, get) => {
                   ...player,
                   championList: player.championList.map((champ) => {
                     if (champ.id === selectedChamp?.id) {
-                      return { ...champ, ...data, selected: true }
+                      if (data?.role && data?.resourceScore !== undefined)
+                        champ.data[data?.role] = data?.resourceScore
+                      return { ...champ, selected: true }
                     }
                     return { ...champ, selected: false }
                   })
