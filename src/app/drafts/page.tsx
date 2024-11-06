@@ -56,7 +56,7 @@ export default function Drafts() {
   );
 
   return (
-    <div className='rounded-md w-full h-full bg-pink-800 p-4 flex flex-col gap-2'>
+    <div className='rounded-md w-full h-full p-4 flex flex-col gap-2'>
       <div className='flex flex-row items-center gap-4'>
         <AddIcon
           onClickHandler={() => {
@@ -69,7 +69,7 @@ export default function Drafts() {
           <div key={index} className=''>
             <div
               className={`p-2 ${
-                selectedDraft?.name === draft.name ? 'bg-slate-500' : 'bg-neutral-500'
+                selectedDraft?.name === draft.name ? 'bg-blue-500' : 'bg-neutral-500'
               } rounded-md h-full text-white`}
               onClick={() => {
                 if (emptyDraft !== undefined) return;
@@ -108,11 +108,11 @@ export default function Drafts() {
           </div>
           <div className='flex flex-col gap-4 justify-between'>
             {selectedDraft.playerList.map((player, index) => (
-              <div key={index} className='flex flex-row gap-4 p-4 bg-sky-500'>
+              <div key={index} className='flex flex-row gap-4 p-4'>
                 <div className='rounded-md h-[75px] flex justify-center items-center'>
                   {player.name ? (
                     <div
-                      className='p-2 bg-slate-500 text-white rounded-md w-[180px] h-full flex justify-center items-center'
+                      className='p-2 bg-blue-500 text-white rounded-md w-[180px] h-full flex justify-center items-center'
                       onClick={() => {
                         editPlayer({
                           action: 'update',
@@ -201,9 +201,6 @@ export default function Drafts() {
                         </div>
                       ))
                   )}
-                </div>
-                <div className='bg-yellow-500 p-2 rounded-md'>
-                  {player.selectedChamp?.data[player.role] ?? 0}
                 </div>
               </div>
             ))}

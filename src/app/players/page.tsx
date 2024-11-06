@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { BASE_URL } from '@/data';
-import { Player, resourceScores, roles, usePlayerStore } from '@/store/player';
+import { Player, roles, usePlayerStore } from '@/store/player';
 import axios from 'axios';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -304,25 +304,25 @@ export default function Players() {
           </div>
           {selectedChamp && (
             <div className='flex flex-col gap-4'>
-              <div className='flex flex-col gap-2'>
+              <div className='flex flex-row gap-2 ml-[150px]'>
                 {roles.map((role, index) => (
                   <div key={index} className='flex flex-row gap-4'>
                     <p
                       className={`${
                         selectedChamp.data[role] > 0 ? 'bg-fuchsia-500' : 'bg-stone-500'
-                      } p-2 rounded-md w-20`}
+                      } p-2 rounded-md w-20 cursor-pointer`}
                       onClick={() => {
                         editChampion({
                           action: 'update',
                           playerId: selectedPlayer.id,
                           selectedChampId: selectedChamp.id,
-                          data: { role, resourceScore: 0 },
+                          data: { role, resourceScore: selectedChamp.data[role] > 0 ? 0 : 1 },
                         });
                       }}
                     >
                       {role}
                     </p>
-                    <div className='flex flex-row gap-2'>
+                    {/* <div className='flex flex-row gap-2'>
                       {resourceScores.map((resourceScore, index) => {
                         return (
                           <div
@@ -361,7 +361,7 @@ export default function Players() {
                           ></div>
                         );
                       })}
-                    </div>
+                    </div> */}
                   </div>
                 ))}
               </div>
