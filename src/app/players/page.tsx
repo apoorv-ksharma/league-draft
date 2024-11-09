@@ -19,8 +19,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 export default function Players() {
   const { playerList, editChampion, editPlayer } = usePlayerStore();
   const [newPlayer, setNewPlayer] = useState({ name: '', inGameName: '', tag: '' });
+  const [newChamp, setNewChamp] = useState<{ name: string; id: string; img: string }>();
   const [playerId, setPlayerId] = useState('');
   const [availablePlayers, setAvailablePlayers] = useState<{ name: string; id: string }[]>([]);
+  const [availableChampions, setAvailableChampions] = useState<
+    { name: string; id: string; img: string }[]
+  >([]);
   const [loading, setLoading] = useState({ getPlayer: false });
   const selectedPlayer = useMemo(() => playerList.find((player) => player.selected), [playerList]);
   const selectedChamp = useMemo(
@@ -133,8 +137,15 @@ export default function Players() {
 
   useEffect(() => {
     (async () => {
-      const response = await axios.get(`${BASE_URL}/player/`);
-      setAvailablePlayers(response.data);
+      const playerResponse = await axios.get(`${BASE_URL}/player/`);
+      setAvailablePlayers(playerResponse.data);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const championResponse = await axios.get(`${BASE_URL}/champion/`);
+      setAvailableChampions(championResponse.data);
     })();
   }, []);
 
@@ -263,44 +274,107 @@ export default function Players() {
             </div>
           )}
           <div className='flex flex-row gap-4 items-center'>
-            <AddIcon
-              onClickHandler={() => {
-                const emptyChampion = selectedPlayer.championList.find(
-                  (champ) => champ.name === ''
+            {newChamp?.id ? (
+              <div className='bg-white rounded-md flex flex-row gap-4'>
+                <Select
+                  value={newChamp?.id}
+                  onValueChange={(id) => {
+                    const champ = availableChampions.find((champion) => champion.id === id);
+                    setNewChamp(champ);
+                  }}
+                >
+                  <SelectTrigger className='w-[180px]'>
+                    <SelectValue placeholder='Select a champion' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Champions</SelectLabel>
+                      {availableChampions
+                        .sort((a, b) => {
+                          if (a.name < b.name) {
+                            return -1;
+                          }
+                          if (a.name > b.name) {
+                            return 1;
+                          }
+                          return 0;
+                        })
+                        .filter((champion: { id: string }) => {
+                          const idList = selectedPlayer.championList.map((champ) => champ.id);
+                          return !idList.includes(champion.id);
+                        })
+                        .map((champion: { id: string; name: string }, index) => (
+                          <SelectItem key={index} value={champion.id}>
+                            {champion.name}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <button
+                  className='rounded-md p-2 bg-sky-500'
+                  disabled={!newChamp}
+                  onClick={() => {
+                    if (!newChamp) return;
+                    editChampion({
+                      action: 'add',
+                      playerId: selectedPlayer.id,
+                      selectedChampId: newChamp.id,
+                      champData: {
+                        name: newChamp.name,
+                        id: newChamp.id,
+                        img: newChamp.img,
+                        data: roles.reduce((object, role) => {
+                          object[role] = 0;
+                          return object;
+                        }, Object.create({})),
+                        selected: false,
+                      },
+                    });
+                    setNewChamp(undefined);
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+            ) : (
+              <AddIcon
+                onClickHandler={() => {
+                  setNewChamp({ id: 'NewId', img: '', name: '' });
+                }}
+              />
+            )}
+            {selectedPlayer?.championList
+              // .filter((champ) => champ.name)
+              .map((champion, index) => {
+                return (
+                  <div key={index} className='flex flex-col justify-center items-center'>
+                    <Image
+                      className={`rounded-full border-white ${
+                        selectedChamp?.id === champion.id ? 'border-red-500' : 'border-white'
+                      } border-4 ${
+                        selectedChamp?.id === champion.id
+                          ? 'w-[75px] h-[75px]'
+                          : 'w-[50px] h-[50px]'
+                      }`}
+                      alt='Champ'
+                      src={`/images/${champion.img}`}
+                      width={500}
+                      height={500}
+                      onClick={() => {
+                        if (emptyChampion !== undefined) return;
+                        editChampion({
+                          action: 'update',
+                          playerId: selectedPlayer.id,
+                          data: { selected: true },
+                          selectedChampId: champion.id,
+                        });
+                      }}
+                    />
+                    {/* <p className='text-ellipsis'>{champion.name}</p> */}
+                  </div>
                 );
-                if (emptyChampion !== undefined) {
-                  return;
-                }
-                editChampion({ action: 'add', playerId: selectedPlayer?.id });
-              }}
-            />
-            {selectedPlayer?.championList.map((champion, index) => {
-              return (
-                <div key={index} className='flex flex-col justify-center items-center'>
-                  <Image
-                    className={`rounded-full border-white ${
-                      selectedChamp?.id === champion.id ? 'border-red-500' : 'border-white'
-                    } border-4 ${
-                      selectedChamp?.id === champion.id ? 'w-[75px] h-[75px]' : 'w-[50px] h-[50px]'
-                    }`}
-                    alt='Champ'
-                    src={`/images/${champion.img}`}
-                    width={500}
-                    height={500}
-                    onClick={() => {
-                      if (emptyChampion !== undefined) return;
-                      editChampion({
-                        action: 'update',
-                        playerId: selectedPlayer.id,
-                        data: { selected: true },
-                        selectedChampId: champion.id,
-                      });
-                    }}
-                  />
-                  {/* <p className='text-ellipsis'>{champion.name}</p> */}
-                </div>
-              );
-            })}
+              })}
           </div>
           {selectedChamp && (
             <div className='flex flex-col gap-4'>
@@ -364,6 +438,18 @@ export default function Players() {
                     </div> */}
                   </div>
                 ))}
+                <div
+                  className='ml-40 p-2 rounded-md bg-red-200 hover:bg-red-500 cursor-pointer text-white'
+                  onClick={() => {
+                    editChampion({
+                      action: 'delete',
+                      playerId: selectedPlayer.id,
+                      selectedChampId: selectedChamp.id,
+                    });
+                  }}
+                >
+                  Delete
+                </div>
               </div>
             </div>
           )}
