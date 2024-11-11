@@ -150,7 +150,7 @@ export default function Players() {
   }, []);
 
   return (
-    <div className='rounded-md w-full h-full bg-white p-4 flex flex-col gap-2'>
+    <div className='rounded-md w-full h-full bg-slate-400 p-2 md:p-4 flex flex-col gap-2'>
       <div className='flex flex-row items-center gap-4'>
         <AddIcon
           onClickHandler={() => {
@@ -159,26 +159,28 @@ export default function Players() {
             }
           }}
         />
-        {playerList.map((player, index) => (
-          <div
-            key={index}
-            className={`p-2 ${
-              selectedPlayer?.name === player.name ? 'bg-sky-500' : 'bg-neutral-500'
-            } rounded-md h-full text-white`}
-            onClick={() => {
-              if (emptyPlayer !== undefined) return;
+        <div className='flex flex-row items-center gap-2 md:gap-4 flex-wrap'>
+          {playerList.map((player, index) => (
+            <div
+              key={index}
+              className={`p-2 ${
+                selectedPlayer?.name === player.name ? 'bg-sky-500' : 'bg-neutral-500'
+              } rounded-md h-full text-white`}
+              onClick={() => {
+                if (emptyPlayer !== undefined) return;
 
-              editPlayer({ action: 'update', data: { selected: true }, playerId: player.id });
-            }}
-          >
-            {player.name ? player.name : 'New Player'}
-          </div>
-        ))}
+                editPlayer({ action: 'update', data: { selected: true }, playerId: player.id });
+              }}
+            >
+              {player.name ? player.name : 'New Player'}
+            </div>
+          ))}
+        </div>
       </div>
       {selectedPlayer && (
         <div className='flex flex-col gap-2'>
           {selectedPlayer.name ? null : (
-            <div className='flex flex-row justify-center items-center'>
+            <div className='flex md:flex-row flex-col justify-center items-center'>
               <div className='flex flex-col gap-4 w-full'>
                 <input
                   value={newPlayer?.name}
@@ -188,27 +190,28 @@ export default function Players() {
                     setNewPlayer((prev) => ({ ...prev, name: e.target.value ?? '' }));
                   }}
                 />
-                <div className='flex flex-row gap-4'>
-                  <input
-                    value={newPlayer?.inGameName}
-                    placeholder='In Game Name'
-                    className='w-[150px] rounded-md p-2'
-                    onChange={(e) => {
-                      setNewPlayer((prev) => ({ ...prev, inGameName: e.target.value ?? '' }));
-                    }}
-                  />
-                  <div className='flex flex-row justify-center items-center gap-4'>
-                    <p className='font-semibold'>#</p>
+                <div className='flex flex-col md:flex-row gap-4'>
+                  <div className='flex flex-row gap-4'>
                     <input
-                      value={newPlayer?.tag}
-                      placeholder='Tag'
+                      value={newPlayer?.inGameName}
+                      placeholder='In Game Name'
                       className='w-[150px] rounded-md p-2'
                       onChange={(e) => {
-                        setNewPlayer((prev) => ({ ...prev, tag: e.target.value ?? '' }));
+                        setNewPlayer((prev) => ({ ...prev, inGameName: e.target.value ?? '' }));
                       }}
                     />
+                    <div className='flex flex-row justify-center items-center gap-4'>
+                      <p className='font-semibold'>#</p>
+                      <input
+                        value={newPlayer?.tag}
+                        placeholder='Tag'
+                        className='w-[150px] rounded-md p-2'
+                        onChange={(e) => {
+                          setNewPlayer((prev) => ({ ...prev, tag: e.target.value ?? '' }));
+                        }}
+                      />
+                    </div>
                   </div>
-
                   <button
                     disabled={loading.getPlayer}
                     className='p-2 rounded-md bg-slate-500 shadow-xl text-white'
@@ -226,8 +229,8 @@ export default function Players() {
                 </div>
               </div>
               <div className='p-10'>OR</div>
-              <div className='flex flex-row gap-4 w-full'>
-                <div className='bg-white rounded-md'>
+              <div className='flex flex-col md:flex-row gap-4 w-full'>
+                <div className='bg-white rounded-md w-fit'>
                   <Select
                     value={playerId}
                     onValueChange={(id) => {
@@ -273,118 +276,120 @@ export default function Players() {
               </div>
             </div>
           )}
-          <div className='flex flex-row gap-4 items-center'>
-            {newChamp?.id ? (
-              <div className='bg-white rounded-md flex flex-row gap-4'>
-                <Select
-                  value={newChamp?.id}
-                  onValueChange={(id) => {
-                    const champ = availableChampions.find((champion) => champion.id === id);
-                    setNewChamp(champ);
+          {selectedPlayer?.championList.length === 0 ? null : (
+            <div className='flex flex-row gap-2 md:gap-4 items-center'>
+              {newChamp?.id ? (
+                <div className='bg-white rounded-md flex flex-row gap-4'>
+                  <Select
+                    value={newChamp?.id}
+                    onValueChange={(id) => {
+                      const champ = availableChampions.find((champion) => champion.id === id);
+                      setNewChamp(champ);
+                    }}
+                  >
+                    <SelectTrigger className='w-[180px]'>
+                      <SelectValue placeholder='Select a champion' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Champions</SelectLabel>
+                        {availableChampions
+                          .sort((a, b) => {
+                            if (a.name < b.name) {
+                              return -1;
+                            }
+                            if (a.name > b.name) {
+                              return 1;
+                            }
+                            return 0;
+                          })
+                          .filter((champion: { id: string }) => {
+                            const idList = selectedPlayer.championList.map((champ) => champ.id);
+                            return !idList.includes(champion.id);
+                          })
+                          .map((champion: { id: string; name: string }, index) => (
+                            <SelectItem key={index} value={champion.id}>
+                              {champion.name}
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <button
+                    className='rounded-md p-2 bg-sky-500'
+                    disabled={!newChamp}
+                    onClick={() => {
+                      if (!newChamp) return;
+                      editChampion({
+                        action: 'add',
+                        playerId: selectedPlayer.id,
+                        selectedChampId: newChamp.id,
+                        champData: {
+                          name: newChamp.name,
+                          id: newChamp.id,
+                          img: newChamp.img,
+                          data: roles.reduce((object, role) => {
+                            object[role] = 0;
+                            return object;
+                          }, Object.create({})),
+                          selected: false,
+                        },
+                      });
+                      setNewChamp(undefined);
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              ) : (
+                <AddIcon
+                  onClickHandler={() => {
+                    setNewChamp({ id: 'NewId', img: '', name: '' });
                   }}
-                >
-                  <SelectTrigger className='w-[180px]'>
-                    <SelectValue placeholder='Select a champion' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Champions</SelectLabel>
-                      {availableChampions
-                        .sort((a, b) => {
-                          if (a.name < b.name) {
-                            return -1;
-                          }
-                          if (a.name > b.name) {
-                            return 1;
-                          }
-                          return 0;
-                        })
-                        .filter((champion: { id: string }) => {
-                          const idList = selectedPlayer.championList.map((champ) => champ.id);
-                          return !idList.includes(champion.id);
-                        })
-                        .map((champion: { id: string; name: string }, index) => (
-                          <SelectItem key={index} value={champion.id}>
-                            {champion.name}
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <button
-                  className='rounded-md p-2 bg-sky-500'
-                  disabled={!newChamp}
-                  onClick={() => {
-                    if (!newChamp) return;
-                    editChampion({
-                      action: 'add',
-                      playerId: selectedPlayer.id,
-                      selectedChampId: newChamp.id,
-                      champData: {
-                        name: newChamp.name,
-                        id: newChamp.id,
-                        img: newChamp.img,
-                        data: roles.reduce((object, role) => {
-                          object[role] = 0;
-                          return object;
-                        }, Object.create({})),
-                        selected: false,
-                      },
-                    });
-                    setNewChamp(undefined);
-                  }}
-                >
-                  Add
-                </button>
+                />
+              )}
+              <div className='flex flex-row gap-2 md:gap-4 flex-wrap'>
+                {selectedPlayer?.championList
+                  // .filter((champ) => champ.name)
+                  .map((champion, index) => {
+                    return (
+                      <Image
+                        key={index}
+                        className={`rounded-full md:border-white ${
+                          selectedChamp?.id === champion.id ? 'border-red-500' : 'border-white'
+                        } border-4 w-[50px] h-[50px] ${
+                          selectedChamp?.id === champion.id
+                            ? 'md:w-[75px] md:h-[75px]'
+                            : 'md:w-[50px] md:h-[50px]'
+                        }`}
+                        alt='Champ'
+                        src={`/images/${champion.img}`}
+                        width={48}
+                        height={48}
+                        onClick={() => {
+                          if (emptyChampion !== undefined) return;
+                          editChampion({
+                            action: 'update',
+                            playerId: selectedPlayer.id,
+                            data: { selected: true },
+                            selectedChampId: champion.id,
+                          });
+                        }}
+                      />
+                    );
+                  })}
               </div>
-            ) : (
-              <AddIcon
-                onClickHandler={() => {
-                  setNewChamp({ id: 'NewId', img: '', name: '' });
-                }}
-              />
-            )}
-            {selectedPlayer?.championList
-              // .filter((champ) => champ.name)
-              .map((champion, index) => {
-                return (
-                  <div key={index} className='flex flex-col justify-center items-center'>
-                    <Image
-                      className={`rounded-full border-white ${
-                        selectedChamp?.id === champion.id ? 'border-red-500' : 'border-white'
-                      } border-4 ${
-                        selectedChamp?.id === champion.id
-                          ? 'w-[75px] h-[75px]'
-                          : 'w-[50px] h-[50px]'
-                      }`}
-                      alt='Champ'
-                      src={`/images/${champion.img}`}
-                      width={500}
-                      height={500}
-                      onClick={() => {
-                        if (emptyChampion !== undefined) return;
-                        editChampion({
-                          action: 'update',
-                          playerId: selectedPlayer.id,
-                          data: { selected: true },
-                          selectedChampId: champion.id,
-                        });
-                      }}
-                    />
-                    {/* <p className='text-ellipsis'>{champion.name}</p> */}
-                  </div>
-                );
-              })}
-          </div>
+            </div>
+          )}
           {selectedChamp && (
             <div className='flex flex-col gap-4'>
-              <div className='flex flex-row gap-2 ml-[150px]'>
+              <div className='flex flex-row gap-2 md:ml-[150px] flex-wrap'>
                 {roles.map((role, index) => (
                   <div key={index} className='flex flex-row gap-4'>
                     <p
                       className={`${
                         selectedChamp.data[role] > 0 ? 'bg-fuchsia-500' : 'bg-stone-500'
-                      } p-2 rounded-md w-20 cursor-pointer`}
+                      } p-2 rounded-md w-15 md:w-20 cursor-pointer`}
                       onClick={() => {
                         editChampion({
                           action: 'update',
@@ -439,7 +444,7 @@ export default function Players() {
                   </div>
                 ))}
                 <div
-                  className='ml-40 p-2 rounded-md bg-red-200 hover:bg-red-500 cursor-pointer text-white'
+                  className='md:ml-40 p-2 rounded-md bg-red-500 md:bg-red-200 hover:bg-red-500 cursor-pointer text-white'
                   onClick={() => {
                     editChampion({
                       action: 'delete',

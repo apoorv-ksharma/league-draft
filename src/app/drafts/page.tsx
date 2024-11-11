@@ -56,7 +56,7 @@ export default function Drafts() {
   );
 
   return (
-    <div className='rounded-md w-full h-full p-4 flex flex-col gap-2'>
+    <div className='rounded-md w-full h-full bg-slate-400 p-1 md:p-4 flex flex-col gap-2'>
       <div className='flex flex-row items-center gap-4'>
         <AddIcon
           onClickHandler={() => {
@@ -108,11 +108,11 @@ export default function Drafts() {
           </div>
           <div className='flex flex-col gap-4 justify-between'>
             {selectedDraft.playerList.map((player, index) => (
-              <div key={index} className='flex flex-row gap-4 p-4'>
+              <div key={index} className='flex flex-row gap-4 md:p-4'>
                 <div className='rounded-md h-[75px] flex justify-center items-center'>
                   {player.name ? (
                     <div
-                      className='p-2 bg-blue-500 text-white rounded-md w-[180px] h-full flex justify-center items-center'
+                      className='md:p-2 rounded-md bg-blue-500 h-full w-[50px] md:w-[180px] flex justify-center items-center'
                       onClick={() => {
                         editPlayer({
                           action: 'update',
@@ -121,7 +121,10 @@ export default function Drafts() {
                         });
                       }}
                     >
-                      {player.name}
+                      <p className='text-center text-white hidden md:block'>{player.name}</p>
+                      <p className='text-center text-white block md:hidden'>
+                        {player.name.split('')[0]}
+                      </p>
                     </div>
                   ) : (
                     <div className='bg-white rounded-md'>
@@ -154,11 +157,15 @@ export default function Drafts() {
                     </div>
                   )}
                 </div>
-                <div className='w-full gap-4 flex flex-row justify-center items-center'>
+                <div className='gap-4 flex flex-row items-center w-full justify-center'>
                   {player.selectedChamp ? (
-                    <div
+                    <Image
                       key={index}
-                      className=''
+                      className={`rounded-full border-red-500 border-4 w-[75px] h-[75px]`}
+                      alt='Champ'
+                      src={`/images/${player.selectedChamp.img}`}
+                      width={75}
+                      height={75}
                       onClick={() => {
                         editPlayer({
                           action: 'update',
@@ -166,40 +173,30 @@ export default function Drafts() {
                           data: { selectedChamp: undefined, role: player.role },
                         });
                       }}
-                    >
-                      <Image
-                        className={`rounded-full border-red-500 border-4 w-[75px] h-[75px]`}
-                        alt='Champ'
-                        src={`/images/${player.selectedChamp.img}`}
-                        width={500}
-                        height={500}
-                      />
-                    </div>
+                    />
                   ) : (
-                    playerList
-                      .find((playerL) => playerL.name === player.name)
-                      ?.championList.filter((champ) => champ.data[player.role] > 0)
-                      .map((champion, index) => (
-                        <div
-                          key={index}
-                          className=''
-                          onClick={() => {
-                            editPlayer({
-                              action: 'update',
-                              draftId: selectedDraft.id,
-                              data: { selectedChamp: champion, role: player.role },
-                            });
-                          }}
-                        >
+                    <div className='flex flex-row overflow-auto gap-4'>
+                      {playerList
+                        .find((playerL) => playerL.name === player.name)
+                        ?.championList.filter((champ) => champ.data[player.role] > 0)
+                        .map((champion, index) => (
                           <Image
+                            key={index}
+                            onClick={() => {
+                              editPlayer({
+                                action: 'update',
+                                draftId: selectedDraft.id,
+                                data: { selectedChamp: champion, role: player.role },
+                              });
+                            }}
                             className={`rounded-full border-white border-4 w-[75px] h-[75px]`}
                             alt='Champ'
                             src={`/images/${champion.img}`}
-                            width={500}
-                            height={500}
+                            width={50}
+                            height={50}
                           />
-                        </div>
-                      ))
+                        ))}
+                    </div>
                   )}
                 </div>
               </div>
