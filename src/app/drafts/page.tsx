@@ -164,8 +164,8 @@ export default function Drafts() {
                       className={`rounded-full border-red-500 border-4 w-[75px] h-[75px]`}
                       alt='Champ'
                       src={`/images/${player.selectedChamp.img}`}
-                      width={75}
-                      height={75}
+                      width={100}
+                      height={100}
                       onClick={() => {
                         editPlayer({
                           action: 'update',

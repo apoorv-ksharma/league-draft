@@ -364,8 +364,8 @@ export default function Players() {
                         }`}
                         alt='Champ'
                         src={`/images/${champion.img}`}
-                        width={48}
-                        height={48}
+                        width={100}
+                        height={100}
                         onClick={() => {
                           if (emptyChampion !== undefined) return;
                           editChampion({
@@ -401,46 +401,6 @@ export default function Players() {
                     >
                       {role}
                     </p>
-                    {/* <div className='flex flex-row gap-2'>
-                      {resourceScores.map((resourceScore, index) => {
-                        return (
-                          <div
-                            className={`${(() => {
-                              switch (resourceScore) {
-                                case 0:
-                                  return 'bg-black';
-                                case 1:
-                                  return 'bg-green-700';
-                                case 2:
-                                  return 'bg-green-300';
-                                case 3:
-                                  return 'bg-yellow-500';
-                                case 4:
-                                  return 'bg-red-400';
-                                case 5:
-                                  return 'bg-red-600';
-
-                                default:
-                                  break;
-                              }
-                            })()} ${
-                              resourceScore === selectedChamp.data[role]
-                                ? 'border-black'
-                                : 'border-white'
-                            } border-4 p-2 rounded-full w-8 h-8`}
-                            key={index}
-                            onClick={() => {
-                              editChampion({
-                                action: 'update',
-                                playerId: selectedPlayer.id,
-                                selectedChampId: selectedChamp.id,
-                                data: { role, resourceScore },
-                              });
-                            }}
-                          ></div>
-                        );
-                      })}
-                    </div> */}
                   </div>
                 ))}
                 <div
